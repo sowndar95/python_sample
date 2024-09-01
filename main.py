@@ -1,5 +1,7 @@
+import json
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+import pandas as pd
 import yfinance as yf
 from pydantic import BaseModel
 from typing import Optional
@@ -35,10 +37,19 @@ class StockInfo(BaseModel):
     shareholders_equity: Optional[float] = None
     long_business_summary: Optional[str] = None
 
-@app.get("/stocks")
+@app.get("/getStockList")
 def get_stocks():
-    stocks = ["RELIANCE.NS", "TCS.NS", "INFY.NS", "HDFCBANK.NS"]  # Add more tickers as needed
-    return {"stocks": stocks}
+    try:
+        # Open and read the JSON file
+        with open('stockData.json', 'r') as file:
+            stock_data = json.load(file)
+        return stock_data
+    except FileNotFoundError:
+        print("The file stockData.json was not found.")
+        return []
+    except json.JSONDecodeError:
+        print("Error decoding JSON from the file.")
+        return []
 
 @app.get("/stock/{ticker}", response_model=StockInfo)
 def get_stock_info(ticker: str):
